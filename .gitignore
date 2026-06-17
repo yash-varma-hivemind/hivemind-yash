@@ -1,0 +1,25 @@
+null
+test-output
+
+# Next.js
+.next
+out
+# Dependencies
+node_modules/
+
+# Nx cache
+.nx/
+
+# Build outputs
+dist/
+.next/
+apps/web/.next/
+coverage/
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.*
+!.env.example
