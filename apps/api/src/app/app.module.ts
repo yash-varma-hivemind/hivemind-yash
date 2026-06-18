@@ -5,20 +5,18 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthResolver } from './health.resolver';
-
+import { PrismaModule } from '../prisma/prisma.module';
+import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    PrismaModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-
-      // Code-first GraphQL:
-      // NestJS creates the schema from TypeScript decorators.
       autoSchemaFile: true,
-
-      // Keep the generated schema in a predictable order.
       sortSchema: true,
-
-      // Enable the browser-based GraphQL testing screen.
       graphiql: true,
     }),
   ],
