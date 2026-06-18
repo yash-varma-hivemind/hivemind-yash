@@ -1,0 +1,64 @@
+name: hivemind-yash
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: hivemind-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: hivemind
+      POSTGRES_PASSWORD: hivemind_dev
+      POSTGRES_DB: hivemind
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hivemind -d hivemind"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    container_name: hivemind-api
+
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+
+    environment:
+      PORT: 3000
+      WEB_ORIGIN: http://localhost:4200
+      DATABASE_URL: postgresql://hivemind:hivemind_dev@postgres:5432/hivemind?schema=public
+      NX_DAEMON: "false"
+
+    ports:
+      - "3000:3000"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    container_name: hivemind-web
+
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+
+    environment:
+      NEXT_PUBLIC_GRAPHQL_URL: http://localhost:3000/graphql
+      NX_DAEMON: "false"
+
+    ports:
+      - "4200:4200"
+
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
