@@ -23,3 +23,8 @@ coverage/
 .env
 .env.*
 !.env.example
+
+/apps/api/src/generated/prisma
+
+# Prisma generated client
+apps/api/src/generated/prisma/
