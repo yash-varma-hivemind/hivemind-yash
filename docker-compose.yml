@@ -28,7 +28,7 @@ services:
 
     build:
       context: .
-      dockerfile: docker/api.Dockerfile
+      dockerfile: apps/api/Dockerfile
 
     environment:
       PORT: 3000
@@ -48,7 +48,7 @@ services:
 
     build:
       context: .
-      dockerfile: docker/web.Dockerfile
+      dockerfile: apps/web/Dockerfile
 
     environment:
       NEXT_PUBLIC_GRAPHQL_URL: http://localhost:3000/graphql
