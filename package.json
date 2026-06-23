@@ -7,7 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "build": "pnpm nx build api && pnpm nx build web",
+    "dev": "concurrently --kill-others-on-fail --names api,web \"pnpm nx serve api\" \"pnpm nx dev web --port=4200\""
   },
   "keywords": [],
   "author": "",
@@ -42,6 +44,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "babel-jest": "~30.3.0",
+    "concurrently": "^10.0.3",
     "eslint": "^9.8.0",
     "eslint-config-next": "^16.1.6",
     "eslint-config-prettier": "^10.0.0",
