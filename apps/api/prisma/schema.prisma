@@ -6,3 +6,37 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model OnboardingStep {
+  id          String                     @id @default(uuid()) @db.Uuid
+  role        String
+  title       String
+  body        String                     @db.Text
+  order       Int
+  createdAt   DateTime                   @default(now())
+  updatedAt   DateTime                   @updatedAt
+  completions OnboardingStepCompletion[]
+
+  @@index([role, order])
+}
+
+model OnboardingEnrollment {
+  id          String                     @id @default(uuid()) @db.Uuid
+  userId      String                     @unique
+  role        String
+  enrolledAt  DateTime                   @default(now())
+  completions OnboardingStepCompletion[]
+}
+
+model OnboardingStepCompletion {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String
+  stepId      String   @db.Uuid
+  completedAt DateTime @default(now())
+
+  enrollment OnboardingEnrollment @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  step       OnboardingStep       @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, stepId])
+  @@index([stepId])
+}

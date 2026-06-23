@@ -9,7 +9,8 @@
     "db:migrate": "prisma migrate dev",
     "postinstall": "prisma generate",
     "build": "pnpm nx build api && pnpm nx build web",
-    "dev": "concurrently --kill-others-on-fail --names api,web \"pnpm nx serve api\" \"pnpm nx dev web --port=4200\""
+    "dev": "concurrently --kill-others-on-fail --names api,web \"pnpm nx serve api\" \"pnpm nx dev web --port=4200\"",
+    "db:seed": "prisma db seed"
   },
   "keywords": [],
   "author": "",
@@ -62,6 +63,7 @@
     "ts-jest": "^29.4.0",
     "ts-node": "10.9.1",
     "tslib": "^2.3.0",
+    "tsx": "^4.22.4",
     "typescript": "~5.9.2",
     "typescript-eslint": "^8.40.0",
     "webpack": "^5.101.3",
