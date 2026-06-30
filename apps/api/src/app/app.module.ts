@@ -7,13 +7,14 @@ import { AppService } from './app.service';
 import { HealthResolver } from './health.resolver';
 import { PrismaModule } from '../prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
+import { OnboardingModule } from '../onboarding/onboarding.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
     PrismaModule,
-    AuthModule,
+    AuthModule,OnboardingModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: true,
