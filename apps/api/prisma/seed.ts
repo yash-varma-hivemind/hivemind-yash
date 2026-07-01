@@ -78,7 +78,21 @@ async function main(): Promise<void> {
     });
   }
 
-  console.log(`Seeded ${onboardingSteps.length} onboarding steps.`);
+  await prisma.onboardingEnrollment.upsert({
+  where: {
+    userId: 'employee-1',
+  },
+  update: {
+    role: 'software-engineer',
+  },
+  create: {
+    userId: 'employee-1',
+    role: 'software-engineer',
+  },
+  });
+
+  console.log(
+  `Seeded ${onboardingSteps.length} onboarding steps and the employee-1 enrolment.`,);
 }
 
 main()
