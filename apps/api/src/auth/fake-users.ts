@@ -9,6 +9,12 @@ export const FAKE_USERS: Record<string, CurrentUserData> = {
     roles: [],
   },
 
+  'employee-2': {
+  id: 'employee-2',
+  name: 'Ethan Employee',
+  roles: [],
+  },
+
   'manager-1': {
     id: 'manager-1',
     name: 'Maya Manager',

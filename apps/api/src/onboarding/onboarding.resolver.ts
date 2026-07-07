@@ -18,7 +18,8 @@ import { CreateOnboardingStepInput } from './inputs/create-onboarding-step.input
 import { ReorderOnboardingStepsInput } from './inputs/reorder-onboarding-steps.input';
 import { UpdateOnboardingStepInput } from './inputs/update-onboarding-step.input';
 import { OnboardingStepModel } from './models/onboarding-step.model';
-
+import { AssignOnboardingRoleInput } from './inputs/assign-onboarding-role.input';
+import { OnboardingTeamProgressModel } from './models/onboarding-team-progress.model';
 @Resolver()
 export class OnboardingResolver {
   constructor(
@@ -133,4 +134,24 @@ onboardingReorderSteps(
 ): Promise<OnboardingStepModel[]> {
   return this.onboardingService.reorderSteps(input);
 }
+
+@Query(() => [OnboardingTeamProgressModel])
+@UseGuards(PermissionsGuard)
+@RequirePerms('onboarding:track-team')
+onboardingTeamProgress(
+  @CurrentUser() user: CurrentUserData,
+): Promise<OnboardingTeamProgressModel[]> {
+  return this.onboardingService.getTeamProgress(user.id);
+}
+
+@Mutation(() => OnboardingTeamProgressModel)
+@UseGuards(PermissionsGuard)
+@RequirePerms('onboarding:track-team')
+onboardingAssignRole(
+  @CurrentUser() user: CurrentUserData,
+  @Args('input') input: AssignOnboardingRoleInput,
+): Promise<OnboardingTeamProgressModel> {
+  return this.onboardingService.assignRole(user.id, input);
+}
+
 }

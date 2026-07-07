@@ -4,6 +4,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { getFakeUserName, getTeamMemberIds, isTeamMember,} from '../auth/fake-teams';
+import { AssignOnboardingRoleInput } from './inputs/assign-onboarding-role.input';
+import { OnboardingTeamProgressModel } from './models/onboarding-team-progress.model';
 import { isUUID } from 'class-validator';
 import { PrismaService } from '../prisma/prisma.service';
 import { OnboardingEnrollmentModel } from './models/onboarding-enrollment.model';
@@ -387,6 +390,120 @@ async reorderSteps(
   );
 
   return this.getAdminSteps(role);
+}
+  async getTeamProgress(
+  managerId: string,
+): Promise<OnboardingTeamProgressModel[]> {
+  const teamMemberIds = getTeamMemberIds(managerId);
+
+  return Promise.all(
+    teamMemberIds.map(async (userId) => {
+      const enrollment =
+        await this.prisma.onboardingEnrollment.findUnique({
+          where: {
+            userId,
+          },
+        });
+
+      if (!enrollment) {
+        return {
+          userId,
+          name: getFakeUserName(userId),
+          role: null,
+          completed: 0,
+          total: 0,
+          percentage: 0,
+          enrolled: false,
+        };
+      }
+
+      const total = await this.prisma.onboardingStep.count({
+        where: {
+          role: enrollment.role,
+        },
+      });
+
+      const completed =
+        await this.prisma.onboardingStepCompletion.count({
+          where: {
+            userId,
+            step: {
+              role: enrollment.role,
+            },
+          },
+        });
+
+      const percentage =
+        total === 0
+          ? 0
+          : Math.round((completed / total) * 10000) / 100;
+
+      return {
+        userId,
+        name: getFakeUserName(userId),
+        role: enrollment.role,
+        completed,
+        total,
+        percentage,
+        enrolled: true,
+      };
+    }),
+  );
+}
+
+async assignRole(
+  managerId: string,
+  input: AssignOnboardingRoleInput,
+): Promise<OnboardingTeamProgressModel> {
+  const userId = input.userId.trim();
+  const role = input.role.trim();
+
+  if (!isTeamMember(managerId, userId)) {
+    throw new ForbiddenException(
+      'You can assign onboarding roles only to your own team members',
+    );
+  }
+
+  const roleExists = await this.prisma.onboardingStep.findFirst({
+    where: {
+      role,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!roleExists) {
+    throw new NotFoundException(
+      `No onboarding steps were found for role ${role}`,
+    );
+  }
+
+  await this.prisma.onboardingEnrollment.upsert({
+    where: {
+      userId,
+    },
+    update: {
+      role,
+    },
+    create: {
+      userId,
+      role,
+    },
+  });
+
+  const teamProgress = await this.getTeamProgress(managerId);
+  const assignedUserProgress = teamProgress.find(
+    (member) => member.userId === userId,
+  );
+
+  if (!assignedUserProgress) {
+    throw new NotFoundException(
+      'Assigned user was not found in the manager team',
+    );
+  }
+
+  return assignedUserProgress;
 }
 
   private async requireAllowedStep(
