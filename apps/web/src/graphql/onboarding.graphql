@@ -1,0 +1,57 @@
+query OnboardingPage {
+  onboardingMySteps {
+    id
+    role
+    title
+    body
+    order
+    completed
+    completedAt
+  }
+
+  onboardingMyProgress {
+    completed
+    total
+    percentage
+  }
+}
+
+query ManagerTeamProgress {
+  onboardingTeamProgress {
+    userId
+    name
+    role
+    completed
+    total
+    percentage
+    enrolled
+  }
+}
+
+mutation CompleteStep($stepId: ID!) {
+  onboardingSetStepComplete(stepId: $stepId) {
+    id
+    completed
+    completedAt
+  }
+}
+
+mutation IncompleteStep($stepId: ID!) {
+  onboardingSetStepIncomplete(stepId: $stepId) {
+    id
+    completed
+    completedAt
+  }
+}
+
+mutation AssignRole($input: AssignOnboardingRoleInput!) {
+  onboardingAssignRole(input: $input) {
+    userId
+    name
+    role
+    completed
+    total
+    percentage
+    enrolled
+  }
+}

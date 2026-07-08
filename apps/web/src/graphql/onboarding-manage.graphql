@@ -1,0 +1,55 @@
+query OnboardingRoles {
+  onboardingRoles
+}
+
+query OnboardingAdminSteps($role: String!) {
+  onboardingAdminSteps(role: $role) {
+    id
+    role
+    title
+    body
+    order
+    createdAt
+    updatedAt
+  }
+}
+
+mutation CreateStep($input: CreateOnboardingStepInput!) {
+  onboardingCreateStep(input: $input) {
+    id
+    role
+    title
+    body
+    order
+    createdAt
+    updatedAt
+  }
+}
+
+mutation UpdateStep($input: UpdateOnboardingStepInput!) {
+  onboardingUpdateStep(input: $input) {
+    id
+    role
+    title
+    body
+    order
+    createdAt
+    updatedAt
+  }
+}
+
+mutation DeleteStep($id: ID!) {
+  onboardingDeleteStep(id: $id)
+}
+
+mutation ReorderSteps($input: ReorderOnboardingStepsInput!) {
+  onboardingReorderSteps(input: $input) {
+    id
+    role
+    title
+    body
+    order
+    createdAt
+    updatedAt
+  }
+}
