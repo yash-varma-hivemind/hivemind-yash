@@ -1,40 +1,18 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from "react";
+import {
+  CreateStepDocument,
+  DeleteStepDocument,
+  OnboardingAdminStepsDocument,
+  OnboardingRolesDocument,
+  ReorderStepsDocument,
+  UpdateStepDocument,
+  type OnboardingAdminStepsQuery,
+} from "../../../../gql/graphql";
+import { graphQLRequest } from "../../../../lib/graphql-client";
 
-type OnboardingStep = {
-  id: string;
-  role: string;
-  title: string;
-  body: string;
-  order: number;
-  createdAt: string;
-  updatedAt: string;
-};
-
-type RolesData = {
-  onboardingRoles: string[];
-};
-
-type AdminStepsData = {
-  onboardingAdminSteps: OnboardingStep[];
-};
-
-type CreateStepData = {
-  onboardingCreateStep: OnboardingStep;
-};
-
-type UpdateStepData = {
-  onboardingUpdateStep: OnboardingStep;
-};
-
-type DeleteStepData = {
-  onboardingDeleteStep: boolean;
-};
-
-type ReorderStepsData = {
-  onboardingReorderSteps: OnboardingStep[];
-};
+type OnboardingStep = OnboardingAdminStepsQuery["onboardingAdminSteps"][number];
 
 type StepForm = {
   title: string;
@@ -42,130 +20,22 @@ type StepForm = {
   order: string;
 };
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/graphql';
-
-const MANAGER_USER_ID = 'manager-1';
-const EMPLOYEE_USER_ID = 'employee-1';
-
-async function graphQLRequest<T>(
-  userId: string,
-  query: string,
-  variables?: Record<string, unknown>,
-): Promise<T> {
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-user-id': userId,
-    },
-    body: JSON.stringify({
-      query,
-      variables,
-    }),
-  });
-
-  const result = (await response.json()) as {
-    data?: T;
-    errors?: Array<{ message: string }>;
-  };
-
-  if (!response.ok || result.errors?.length) {
-    throw new Error(
-      result.errors?.[0]?.message ?? 'Failed to manage onboarding steps',
-    );
-  }
-
-  if (!result.data) {
-    throw new Error('No data was returned');
-  }
-
-  return result.data;
-}
-
-const ROLES_QUERY = `
-  query OnboardingRoles {
-    onboardingRoles
-  }
-`;
-
-const ADMIN_STEPS_QUERY = `
-  query OnboardingAdminSteps($role: String!) {
-    onboardingAdminSteps(role: $role) {
-      id
-      role
-      title
-      body
-      order
-      createdAt
-      updatedAt
-    }
-  }
-`;
-
-const CREATE_STEP_MUTATION = `
-  mutation CreateStep($input: CreateOnboardingStepInput!) {
-    onboardingCreateStep(input: $input) {
-      id
-      role
-      title
-      body
-      order
-      createdAt
-      updatedAt
-    }
-  }
-`;
-
-const UPDATE_STEP_MUTATION = `
-  mutation UpdateStep($input: UpdateOnboardingStepInput!) {
-    onboardingUpdateStep(input: $input) {
-      id
-      role
-      title
-      body
-      order
-      createdAt
-      updatedAt
-    }
-  }
-`;
-
-const DELETE_STEP_MUTATION = `
-  mutation DeleteStep($id: ID!) {
-    onboardingDeleteStep(id: $id)
-  }
-`;
-
-const REORDER_STEPS_MUTATION = `
-  mutation ReorderSteps($input: ReorderOnboardingStepsInput!) {
-    onboardingReorderSteps(input: $input) {
-      id
-      role
-      title
-      body
-      order
-      createdAt
-      updatedAt
-    }
-  }
-`;
+const MANAGER_USER_ID = "manager-1";
+const EMPLOYEE_USER_ID = "employee-1";
 
 const emptyForm: StepForm = {
-  title: '',
-  body: '',
-  order: '',
+  title: "",
+  body: "",
+  order: "",
 };
 
 export default function OnboardingManagePage() {
   const [demoUserId, setDemoUserId] = useState(MANAGER_USER_ID);
   const [roles, setRoles] = useState<string[]>([]);
-  const [selectedRole, setSelectedRole] = useState('software-engineer');
+  const [selectedRole, setSelectedRole] = useState("software-engineer");
   const [steps, setSteps] = useState<OnboardingStep[]>([]);
   const [form, setForm] = useState<StepForm>(emptyForm);
-  const [editingStepId, setEditingStepId] = useState<string | null>(
-    null,
-  );
+  const [editingStepId, setEditingStepId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [movingStepId, setMovingStepId] = useState<string | null>(null);
@@ -179,7 +49,7 @@ export default function OnboardingManagePage() {
   const isManager = demoUserId === MANAGER_USER_ID;
 
   async function loadRoles(userId = demoUserId) {
-    const data = await graphQLRequest<RolesData>(userId, ROLES_QUERY);
+    const data = await graphQLRequest(userId, OnboardingRolesDocument);
 
     setRoles(data.onboardingRoles);
 
@@ -191,25 +61,15 @@ export default function OnboardingManagePage() {
     }
   }
 
-  async function loadSteps(
-    role = selectedRole,
-    userId = demoUserId,
-  ) {
-    const data = await graphQLRequest<AdminStepsData>(
-      userId,
-      ADMIN_STEPS_QUERY,
-      {
-        role,
-      },
-    );
+  async function loadSteps(role = selectedRole, userId = demoUserId) {
+    const data = await graphQLRequest(userId, OnboardingAdminStepsDocument, {
+      role,
+    });
 
     setSteps(data.onboardingAdminSteps);
   }
 
-  async function loadPageData(
-    role = selectedRole,
-    userId = demoUserId,
-  ) {
+  async function loadPageData(role = selectedRole, userId = demoUserId) {
     setError(null);
 
     try {
@@ -222,7 +82,7 @@ export default function OnboardingManagePage() {
       setError(
         caughtError instanceof Error
           ? caughtError.message
-          : 'Failed to load admin onboarding data',
+          : "Failed to load admin onboarding data",
       );
     } finally {
       setIsLoading(false);
@@ -251,7 +111,7 @@ export default function OnboardingManagePage() {
     const parsedOrder = Number(form.order);
 
     if (!form.title.trim() || !form.body.trim() || !parsedOrder) {
-      setError('Title, body and order are required.');
+      setError("Title, body and order are required.");
       return;
     }
 
@@ -260,32 +120,24 @@ export default function OnboardingManagePage() {
       setError(null);
 
       if (editingStepId) {
-        await graphQLRequest<UpdateStepData>(
-          demoUserId,
-          UPDATE_STEP_MUTATION,
-          {
-            input: {
-              id: editingStepId,
-              role: selectedRole,
-              title: form.title.trim(),
-              body: form.body.trim(),
-              order: parsedOrder,
-            },
+        await graphQLRequest(demoUserId, UpdateStepDocument, {
+          input: {
+            id: editingStepId,
+            role: selectedRole,
+            title: form.title.trim(),
+            body: form.body.trim(),
+            order: parsedOrder,
           },
-        );
+        });
       } else {
-        await graphQLRequest<CreateStepData>(
-          demoUserId,
-          CREATE_STEP_MUTATION,
-          {
-            input: {
-              role: selectedRole,
-              title: form.title.trim(),
-              body: form.body.trim(),
-              order: parsedOrder,
-            },
+        await graphQLRequest(demoUserId, CreateStepDocument, {
+          input: {
+            role: selectedRole,
+            title: form.title.trim(),
+            body: form.body.trim(),
+            order: parsedOrder,
           },
-        );
+        });
       }
 
       resetForm();
@@ -295,7 +147,7 @@ export default function OnboardingManagePage() {
       setError(
         caughtError instanceof Error
           ? caughtError.message
-          : 'Failed to save onboarding step',
+          : "Failed to save onboarding step",
       );
     } finally {
       setIsSaving(false);
@@ -303,9 +155,7 @@ export default function OnboardingManagePage() {
   }
 
   async function deleteStep(stepId: string) {
-    const confirmed = window.confirm(
-      'Delete this onboarding step?',
-    );
+    const confirmed = window.confirm("Delete this onboarding step?");
 
     if (!confirmed) {
       return;
@@ -314,13 +164,9 @@ export default function OnboardingManagePage() {
     try {
       setError(null);
 
-      await graphQLRequest<DeleteStepData>(
-        demoUserId,
-        DELETE_STEP_MUTATION,
-        {
-          id: stepId,
-        },
-      );
+      await graphQLRequest(demoUserId, DeleteStepDocument, {
+        id: stepId,
+      });
 
       await loadRoles();
       await loadSteps();
@@ -328,22 +174,19 @@ export default function OnboardingManagePage() {
       setError(
         caughtError instanceof Error
           ? caughtError.message
-          : 'Failed to delete onboarding step',
+          : "Failed to delete onboarding step",
       );
     }
   }
 
-  async function moveStep(stepId: string, direction: 'up' | 'down') {
-    const currentIndex = sortedSteps.findIndex(
-      (step) => step.id === stepId,
-    );
+  async function moveStep(stepId: string, direction: "up" | "down") {
+    const currentIndex = sortedSteps.findIndex((step) => step.id === stepId);
 
     if (currentIndex === -1) {
       return;
     }
 
-    const nextIndex =
-      direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    const nextIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
 
     if (nextIndex < 0 || nextIndex >= sortedSteps.length) {
       return;
@@ -357,26 +200,22 @@ export default function OnboardingManagePage() {
       setMovingStepId(stepId);
       setError(null);
 
-      const data = await graphQLRequest<ReorderStepsData>(
-        demoUserId,
-        REORDER_STEPS_MUTATION,
-        {
-          input: {
-            role: selectedRole,
-            steps: reorderedSteps.map((step, index) => ({
-              id: step.id,
-              order: index + 1,
-            })),
-          },
+      const data = await graphQLRequest(demoUserId, ReorderStepsDocument, {
+        input: {
+          role: selectedRole,
+          steps: reorderedSteps.map((step, index) => ({
+            id: step.id,
+            order: index + 1,
+          })),
         },
-      );
+      });
 
       setSteps(data.onboardingReorderSteps);
     } catch (caughtError) {
       setError(
         caughtError instanceof Error
           ? caughtError.message
-          : 'Failed to reorder onboarding steps',
+          : "Failed to reorder onboarding steps",
       );
     } finally {
       setMovingStepId(null);
@@ -394,15 +233,13 @@ export default function OnboardingManagePage() {
             Manage onboarding steps
           </h1>
           <p className="mt-3 max-w-3xl text-slate-300">
-            Create, edit, delete and reorder onboarding steps for each
-            role. This page uses the manager fake user by default.
+            Create, edit, delete and reorder onboarding steps for each role.
+            This page uses the manager fake user by default.
           </p>
         </div>
 
         <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-          <p className="text-sm font-medium text-slate-300">
-            Demo access
-          </p>
+          <p className="text-sm font-medium text-slate-300">Demo access</p>
 
           <div className="mt-3 flex flex-wrap gap-3">
             <button
@@ -410,8 +247,8 @@ export default function OnboardingManagePage() {
               onClick={() => setDemoUserId(MANAGER_USER_ID)}
               className={`rounded-full border px-5 py-2 text-sm font-semibold transition ${
                 demoUserId === MANAGER_USER_ID
-                  ? 'border-slate-100 bg-slate-100 text-slate-950'
-                  : 'border-slate-700 text-slate-100 hover:bg-slate-800'
+                  ? "border-slate-100 bg-slate-100 text-slate-950"
+                  : "border-slate-700 text-slate-100 hover:bg-slate-800"
               }`}
             >
               Manager access
@@ -422,8 +259,8 @@ export default function OnboardingManagePage() {
               onClick={() => setDemoUserId(EMPLOYEE_USER_ID)}
               className={`rounded-full border px-5 py-2 text-sm font-semibold transition ${
                 demoUserId === EMPLOYEE_USER_ID
-                  ? 'border-slate-100 bg-slate-100 text-slate-950'
-                  : 'border-slate-700 text-slate-100 hover:bg-slate-800'
+                  ? "border-slate-100 bg-slate-100 text-slate-950"
+                  : "border-slate-700 text-slate-100 hover:bg-slate-800"
               }`}
             >
               Employee access test
@@ -431,10 +268,8 @@ export default function OnboardingManagePage() {
           </div>
 
           <p className="mt-3 text-sm text-slate-400">
-            Current fake user:{' '}
-            <span className="font-semibold text-slate-100">
-              {demoUserId}
-            </span>
+            Current fake user:{" "}
+            <span className="font-semibold text-slate-100">{demoUserId}</span>
           </p>
         </section>
 
@@ -459,9 +294,7 @@ export default function OnboardingManagePage() {
             <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-lg">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold">
-                    Select role
-                  </h2>
+                  <h2 className="text-xl font-semibold">Select role</h2>
                   <p className="mt-1 text-slate-400">
                     Manage steps for one onboarding role at a time.
                   </p>
@@ -490,7 +323,7 @@ export default function OnboardingManagePage() {
 
             <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-lg">
               <h2 className="text-xl font-semibold">
-                {editingStepId ? 'Edit step' : 'Create step'}
+                {editingStepId ? "Edit step" : "Create step"}
               </h2>
 
               <div className="mt-5 grid gap-4 md:grid-cols-[1fr_120px]">
@@ -550,10 +383,10 @@ export default function OnboardingManagePage() {
                   className="rounded-lg border border-slate-100 bg-slate-100 px-5 py-2 text-sm font-semibold text-slate-950 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isSaving
-                    ? 'Saving...'
+                    ? "Saving..."
                     : editingStepId
-                      ? 'Save changes'
-                      : 'Create step'}
+                      ? "Save changes"
+                      : "Create step"}
                 </button>
 
                 {editingStepId ? (
@@ -575,8 +408,8 @@ export default function OnboardingManagePage() {
                     Steps for {selectedRole}
                   </h2>
                   <p className="mt-1 text-slate-400">
-                    Use Move up and Move down to reorder the current
-                    role&apos;s steps.
+                    Use Move up and Move down to reorder the current role&apos;s
+                    steps.
                   </p>
                 </div>
 
@@ -603,19 +436,13 @@ export default function OnboardingManagePage() {
                   <tbody>
                     {isLoading ? (
                       <tr>
-                        <td
-                          colSpan={4}
-                          className="px-4 py-5 text-slate-300"
-                        >
+                        <td colSpan={4} className="px-4 py-5 text-slate-300">
                           Loading steps...
                         </td>
                       </tr>
                     ) : sortedSteps.length === 0 ? (
                       <tr>
-                        <td
-                          colSpan={4}
-                          className="px-4 py-5 text-slate-300"
-                        >
+                        <td colSpan={4} className="px-4 py-5 text-slate-300">
                           No steps found for this role.
                         </td>
                       </tr>
@@ -646,12 +473,9 @@ export default function OnboardingManagePage() {
                             <div className="flex flex-wrap gap-2">
                               <button
                                 type="button"
-                                onClick={() =>
-                                  void moveStep(step.id, 'up')
-                                }
+                                onClick={() => void moveStep(step.id, "up")}
                                 disabled={
-                                  index === 0 ||
-                                  movingStepId === step.id
+                                  index === 0 || movingStepId === step.id
                                 }
                                 className="rounded-lg border border-slate-700 px-3 py-1 text-xs font-semibold text-slate-100 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
                               >
@@ -660,9 +484,7 @@ export default function OnboardingManagePage() {
 
                               <button
                                 type="button"
-                                onClick={() =>
-                                  void moveStep(step.id, 'down')
-                                }
+                                onClick={() => void moveStep(step.id, "down")}
                                 disabled={
                                   index === sortedSteps.length - 1 ||
                                   movingStepId === step.id
