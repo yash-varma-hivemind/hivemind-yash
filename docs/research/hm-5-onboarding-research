@@ -1,0 +1,93 @@
+# Onboarding Research Survey
+
+## Purpose
+
+This document summarises how onboarding workflows are commonly designed in modern web applications and which ideas are adopted in the HiveMind onboarding feature.
+
+## What Counts as an Onboarding Step?
+
+An onboarding step is a clear task that helps a new user become productive. A step should be specific, trackable, and easy to complete.
+
+Examples:
+
+- Complete profile setup
+- Read company policies
+- Join required communication tools
+- Complete role-specific training
+- Review team documentation
+- Confirm access to required systems
+
+## How Progress Is Tracked
+
+Progress is usually tracked by storing whether each user has completed each assigned step. The system can then calculate:
+
+- completed steps
+- pending steps
+- total assigned steps
+- progress percentage
+
+For HiveMind, progress is tracked through onboarding steps assigned by role and completion records for each user.
+
+## Employee Capabilities
+
+Employees should be able to:
+
+- View their assigned onboarding checklist
+- See completed and pending steps
+- Mark steps as complete
+- Mark completed steps as incomplete if needed
+- Track their own progress
+
+These ideas are adopted in the employee onboarding page.
+
+## Manager Capabilities
+
+Managers should be able to:
+
+- View team onboarding progress
+- Identify employees who are behind
+- Assign onboarding roles
+- Check completion status across team members
+
+These ideas are adopted in the manager progress section.
+
+## Admin Capabilities
+
+Admins or manager-level users should be able to:
+
+- Create onboarding steps
+- Edit onboarding steps
+- Delete onboarding steps
+- Reorder onboarding steps
+- Manage steps by role
+
+These ideas are adopted in the onboarding management page.
+
+## Ideas Adopted in HiveMind
+
+The following ideas are adopted in the current build:
+
+1. Checklist-based onboarding
+2. Role-specific onboarding steps
+3. Employee progress tracking
+4. Complete/incomplete step toggling
+5. Manager team progress visibility
+6. Role assignment by manager/admin
+7. Admin step management
+8. Ordered onboarding steps
+
+## Implementation Link
+
+The research ideas above are reflected in the current onboarding implementation:
+
+- Employee onboarding checklist page
+- Manager team progress view
+- Role assignment flow
+- Admin onboarding management page
+- NestJS GraphQL onboarding APIs
+- Prisma/PostgreSQL onboarding data model
+- Type-safe frontend GraphQL integration using GraphQL Codegen
+
+## Conclusion
+
+The adopted onboarding design focuses on a simple but complete workflow: employees complete their own checklist, managers monitor team progress, and admins manage the onboarding structure by role.
