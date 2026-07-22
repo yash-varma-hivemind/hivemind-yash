@@ -40,3 +40,97 @@ model OnboardingStepCompletion {
   @@unique([userId, stepId])
   @@index([stepId])
 }
+
+enum OnboardingFlowStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model OnboardingFlow {
+  id          String               @id @default(uuid()) @db.Uuid
+  name        String
+  description String?              @db.Text
+  role        String
+  status      OnboardingFlowStatus @default(DRAFT)
+  createdBy   String
+  publishedAt DateTime?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  steps       OnboardingFlowStep[]
+  assignments OnboardingFlowAssignment[]
+
+  @@index([role, status])
+}
+
+model OnboardingFlowStep {
+  id        String   @id @default(uuid()) @db.Uuid
+  flowId    String   @db.Uuid
+  title     String
+  body      String   @db.Text
+  notes     String?  @db.Text
+  isRequired Boolean  @default(true)
+  order     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  flow        OnboardingFlow @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  contents    OnboardingFlowStepContent[]
+  completions OnboardingFlowStepCompletion[]
+
+  @@index([flowId, order])
+}
+
+enum OnboardingFlowStepContentType {
+  RICH_TEXT
+  VIDEO
+  DOCUMENT
+  CHECKLIST
+  EXTERNAL_LINK
+}
+
+model OnboardingFlowStepContent {
+  id        String                        @id @default(uuid()) @db.Uuid
+  stepId    String                        @db.Uuid
+  type      OnboardingFlowStepContentType
+  title     String
+  body      String?                       @db.Text
+  url       String?
+  fileName  String?
+  mimeType  String?
+  items     Json?
+  metadata  Json?
+  order     Int
+  createdAt DateTime                      @default(now())
+  updatedAt DateTime                      @updatedAt
+
+  step OnboardingFlowStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@index([stepId, order])
+}
+
+model OnboardingFlowAssignment {
+  id         String   @id @default(uuid()) @db.Uuid
+  flowId     String   @db.Uuid
+  userId     String   @unique
+  assignedBy String
+  assignedAt DateTime @default(now())
+
+  flow        OnboardingFlow @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  completions OnboardingFlowStepCompletion[]
+
+  @@index([flowId])
+}
+
+model OnboardingFlowStepCompletion {
+  id           String   @id @default(uuid()) @db.Uuid
+  assignmentId String   @db.Uuid
+  stepId       String   @db.Uuid
+  completedAt  DateTime @default(now())
+
+  assignment OnboardingFlowAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  step       OnboardingFlowStep       @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, stepId])
+  @@index([stepId])
+}
