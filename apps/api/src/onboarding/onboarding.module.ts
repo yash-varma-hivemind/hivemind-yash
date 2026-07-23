@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
+import { OnboardingFlowResolver } from './onboarding-flow.resolver';
+import { OnboardingFlowService } from './onboarding-flow.service';
 import { OnboardingResolver } from './onboarding.resolver';
 import { OnboardingService } from './onboarding.service';
 
@@ -8,7 +10,8 @@ import { OnboardingService } from './onboarding.service';
   providers: [
     OnboardingResolver,
     OnboardingService,
+    OnboardingFlowResolver,
+    OnboardingFlowService,
   ],
-  exports: [OnboardingService],
 })
 export class OnboardingModule {}
